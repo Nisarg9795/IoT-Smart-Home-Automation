@@ -1,0 +1,440 @@
+#include <SPI.h>
+#include "RF24.h"
+#include <string.h>
+
+RF24 myRadio (1, 2);
+byte addresses[][6] = {"1Node"};
+String data;
+String btdata;
+String dim_data;
+int dim_data_int;
+int dataTransmitted;
+
+#define led 0
+#define bed_dim_light 14
+#define bed_dim_fan 15
+#define bed_light_relay 16
+#define bed_socket_relay 17
+
+void setup() 
+{
+ pinMode(led, OUTPUT);
+ Serial.begin(9600);
+ Serial1.begin(9600);
+ pinMode(bed_dim_light, OUTPUT);
+ pinMode(bed_dim_fan, OUTPUT);
+ pinMode(bed_light_relay, OUTPUT); 
+ pinMode(bed_socket_relay, OUTPUT);        
+ digitalWrite(led, LOW);     
+ analogWrite(bed_dim_light, 0);
+ analogWrite(bed_dim_fan, 0);
+ digitalWrite(bed_light_relay, LOW); 
+ digitalWrite(bed_socket_relay, LOW); 
+ myRadio.begin();
+ myRadio.setChannel(108);
+ myRadio.setPALevel(RF24_PA_MAX);
+ myRadio.openWritingPipe( addresses[0]);
+ delay(200);
+}
+
+void loop() 
+{
+   if(Serial1.available())
+    {
+      while(Serial1.available())
+     {
+      delay(10);
+      char c = Serial1.read();
+      if(c=='$')
+      {
+       char d=Serial1.read();
+       delay(10);
+       dim_data+=d;
+       d=Serial1.read();
+       delay(10);
+       dim_data=dim_data+d;
+       d=Serial1.read();
+       delay(10);
+       dim_data=dim_data+d;
+       dim_data_int=dim_data.toInt();
+       break;
+      }
+      if(c=='#')
+      {
+       break;
+      }
+      data += c;
+      Serial.println("2222");
+    } 
+  }
+  if(Serial.available())
+  {
+   while(Serial.available())
+   {
+    delay(10);
+    char b = Serial.read();
+    if(b=='#')
+    {
+      break;
+    }
+    btdata += b;
+   }
+ }
+ wifi();
+}
+
+void wifi()
+{
+  while(data.length() >0 || btdata.length() >0 )
+  {
+    Serial.println(data);
+    Serial.println(btdata);
+    if(data=="1101")
+    {
+      s1101();
+      break;
+    }
+    else if(data=="1100")
+    {
+      s1100();
+      break;
+    }
+    else if(data=="1201")
+    {
+      s1201();
+      break;
+    }
+    else if(data=="1200")
+    {
+      s1200();
+      break;
+    }
+    else if(data=="1301")
+    {
+      s1301();
+      break;
+    }
+    else if(data=="1300")
+    {
+      s1300();
+      break;
+    } 
+    else if(data=="1401")
+    {
+      s1401();
+      break;
+    }
+    else if(data=="1400")
+    {
+      s1400();
+      break;
+    }
+    else if(data=="130")
+    {
+      s130();
+      break;
+    }
+    else if(data=="140")
+    {
+      s140();
+      break;
+    }
+    // bedroom(room2)
+    if(data=="2101")
+    {
+      s2101();
+      break;
+    }
+    else if(data=="2100")
+    {
+      s2100();
+      break;
+    }
+    else if(data=="2201")
+    {
+      s2201();
+      break;
+    }
+    else if(data=="2200")
+    {
+      s2200();
+      break;
+    }
+    else if(data=="2301")
+    {
+      s2301();
+      break;
+    }
+    else if(data=="2300")
+    {
+      s2300();
+      break;
+    } 
+    else if(data=="2401")
+    {
+      s2401();
+      break;
+    }
+    else if(data=="2400")
+    {
+      s2400();
+      break;
+    }
+    
+    else if(data=="230")
+    {
+      s230();
+      break;
+    }
+
+    else if(data=="240")
+    {
+      s240();
+      break;
+    } 
+    //////////////////////////////////////////////////
+    else if(btdata=="*hall light on")
+    {
+      s1101();
+      break;
+    } 
+    else if(btdata=="*hall light off")
+    {
+      s1100();
+      break;
+    } 
+    else if(btdata=="*hall socket on")
+    {
+      s1201();
+      break;
+    } 
+    else if(btdata=="*hall socket off")
+    {
+      s1200();
+      break;
+    } 
+    else if(btdata=="*hall lamp on")
+    {
+      s1301();
+      break;
+    } 
+    else if(btdata=="*hall lamp off")
+    {
+      s1300();
+      break;
+    } 
+    else if(btdata=="*hall fan on")
+    {
+      s1401();
+      break;
+    } 
+    else if(btdata=="*hall fan off")
+    {
+      s1400();
+      break;
+    } 
+////////////////////////////////////////////
+    else if(btdata=="*bedroom light on")
+    {
+      s2101();
+      break;
+    } 
+    else if(btdata=="*bedroom light off")
+    {
+      s2100();
+      break;
+    } 
+    else if(btdata=="*bedroom socket on")
+    {
+      s2201();
+      break;
+    } 
+    else if(btdata=="*bedroom socket off")
+    {
+      s2200();
+      break;
+    } 
+    else if(btdata=="*bedroom lamp on")
+    {
+      s2301();
+      break;
+    } 
+    else if(btdata=="*bedroom lamp off")
+    {
+      s2300();
+      break;
+    } 
+    else if(btdata=="*bedroom fan on")
+    {
+      s2401();
+      break;
+    } 
+    else if(btdata=="*bedroom fan off")
+    {
+      s2400();
+      break;
+    } 
+    else
+    {
+      break;
+    }
+            
+  }
+ data="";
+ btdata="";
+ dim_data="";
+}
+
+void s1101()
+{
+  digitalWrite(led, HIGH);
+  dataTransmitted=1101;
+  myRadio.write( &dataTransmitted, sizeof(dataTransmitted) );
+  delay(200);
+  digitalWrite(led, LOW);
+}
+
+void s1100()
+{
+  digitalWrite(led, HIGH);
+  dataTransmitted=1100;
+  myRadio.write( &dataTransmitted, sizeof(dataTransmitted) );
+  delay(200);
+  digitalWrite(led, LOW);
+}
+
+void s1201()
+{
+  digitalWrite(led, HIGH);
+  dataTransmitted=1201;
+  myRadio.write( &dataTransmitted, sizeof(dataTransmitted) );
+  delay(200);
+  digitalWrite(led, LOW);
+}
+void s1200()
+{
+  digitalWrite(led, HIGH);
+  dataTransmitted=1200;
+  myRadio.write( &dataTransmitted, sizeof(dataTransmitted) );
+  delay(200);
+  digitalWrite(led, LOW);
+}
+void s1301()
+{
+  digitalWrite(led, HIGH);
+  dataTransmitted=1301;
+  myRadio.write( &dataTransmitted, sizeof(dataTransmitted) );
+  delay(200);
+  digitalWrite(led, LOW);
+}
+void s1300()
+{
+  digitalWrite(led, HIGH);
+  dataTransmitted=1300;
+  myRadio.write( &dataTransmitted, sizeof(dataTransmitted) );
+  delay(200);
+  digitalWrite(led, LOW);
+}
+void s1401()
+{
+  digitalWrite(led, HIGH);
+  dataTransmitted=1401;
+  myRadio.write( &dataTransmitted, sizeof(dataTransmitted) );
+  delay(200);
+  digitalWrite(led, LOW);
+}
+void s1400()
+{
+  digitalWrite(led, HIGH);
+  dataTransmitted=1400;
+  myRadio.write( &dataTransmitted, sizeof(dataTransmitted) );
+  delay(200);
+  digitalWrite(led, LOW);
+}
+void s2101()
+{
+  digitalWrite(led, HIGH);
+  digitalWrite(bed_light_relay, HIGH);
+  delay(200);
+  digitalWrite(led, LOW);
+}
+void s2100()
+{
+  digitalWrite(led, HIGH);
+  digitalWrite(bed_light_relay, LOW);
+  delay(200);
+  digitalWrite(led, LOW);
+}
+void s2201()
+{
+  digitalWrite(led, HIGH);
+  digitalWrite(bed_socket_relay, HIGH);
+  delay(200);
+  digitalWrite(led, LOW);
+}
+void s2200()
+{
+  digitalWrite(led, HIGH);
+  digitalWrite(bed_socket_relay, LOW);
+  delay(200);
+  digitalWrite(led, LOW);
+}
+void s2301()
+{
+  digitalWrite(led, HIGH);
+  analogWrite(bed_dim_light, 255);
+  delay(200);
+  digitalWrite(led, LOW);
+}
+void s2300()
+{
+  digitalWrite(led, HIGH);
+  analogWrite(bed_dim_light, 0);
+  delay(200);
+  digitalWrite(led, LOW);
+}
+void s2401()
+{
+  digitalWrite(led, HIGH);
+  analogWrite(bed_dim_fan, 255);
+  delay(200);
+  digitalWrite(led, LOW);
+}
+void s2400()
+{
+  digitalWrite(led, HIGH);
+  analogWrite(bed_dim_fan, 0);
+  delay(200);
+  digitalWrite(led, LOW);
+}
+
+void s130()
+{
+  digitalWrite(led, HIGH);
+  dataTransmitted=10000 + dim_data_int;
+  myRadio.write( &dataTransmitted, sizeof(dataTransmitted) );
+  delay(200);
+  digitalWrite(led, LOW);
+}
+void s140()
+{
+  digitalWrite(led, HIGH);
+  dataTransmitted= 20000 + dim_data_int;
+  myRadio.write( &dataTransmitted, sizeof(dataTransmitted) );
+  delay(200);
+  digitalWrite(led, LOW);
+}
+void s230()
+{
+  digitalWrite(led, HIGH);
+  delay(200);
+  analogWrite(bed_dim_light,dim_data_int);
+  digitalWrite(led, LOW);
+}
+void s240()
+{
+  digitalWrite(led, HIGH);
+  delay(200);  
+  analogWrite(bed_dim_fan,dim_data_int);
+  digitalWrite(led, LOW);
+}
